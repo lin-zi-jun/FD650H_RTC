@@ -16,8 +16,8 @@
 
 #define IIC_DELAY_CTRL_NORMAL  1
 
-LOCAL uint8 m_nLastSDA;
-LOCAL uint8 m_nLastSCL;
+ uint8 m_nLastSDA;
+ uint8 m_nLastSCL;
 
 /******************************************************************************
  * FunctionName : i2c_master_setDC
@@ -27,7 +27,7 @@ LOCAL uint8 m_nLastSCL;
  *                uint8 SCL
  * Returns      : NONE
 *******************************************************************************/
-LOCAL void ICACHE_FLASH_ATTR
+void ICACHE_FLASH_ATTR
 i2c_master_setDC(uint8 SDA, uint8 SCL)
 {
     SDA	&= 0x01;
@@ -54,7 +54,7 @@ i2c_master_setDC(uint8 SDA, uint8 SCL)
  * Parameters   : NONE
  * Returns      : uint8 - SDA bit value
 *******************************************************************************/
-LOCAL uint8 ICACHE_FLASH_ATTR
+uint8 ICACHE_FLASH_ATTR
 i2c_master_getDC(void)
 {
     uint8 sda_out;

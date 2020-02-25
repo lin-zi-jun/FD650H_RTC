@@ -251,15 +251,8 @@ static short  g_z = 0;
 STATIC u8 click_now = 0;
 STATIC u8 click_single = 0;
 STATIC u8 click_double = 0;
-#if 0
-#define COLOUR_1    "ff006f014effff"
-#define COLOUR_2    "ff00dd0134ffff"
-#define COLOUR_3    "aa00ff0118ffff"
-#define COLOUR_4    "0900ff00f2ffff"
-#define COLOUR_5    "0084ff00d1ffff"
-#define COLOUR_6    "00eaff00b9ffff"
-#define COLOUR_7    "00ff040079ffff"
-#else
+
+
 
 #define COLOUR_1_1    "ff00150163ffff"      // 100
 #define COLOUR_1_2    "d900120163ffd5"   //  83
@@ -317,7 +310,7 @@ STATIC u8 click_double = 0;
 #define COLOUR_7_6    "401b000019ff35"  // 17
 #define COLOUR_7_7    "1c0c000019ff0e"  // 1
 
-#endif
+
 
 const char* colour_table[7][7] = {
 	{COLOUR_1_1,COLOUR_1_2,COLOUR_1_3,COLOUR_1_4,COLOUR_1_5,COLOUR_1_6,COLOUR_1_7},
@@ -603,7 +596,7 @@ STATIC VOID data_save_timer_cb(UINT timerID,PVOID pTimerArg)
 	 sys_stop_timer(data_save_timer);
 }
 
-#if  1
+
 STATIC VOID send_light_data(u8 R_value, u8 G_value, u8 B_value, u8 CW_value, u8 WW_value)
 {
 	pwm_val = PWM_MAX*R_value/255;
@@ -618,48 +611,6 @@ STATIC VOID send_light_data(u8 R_value, u8 G_value, u8 B_value, u8 CW_value, u8 
 	//pwm_set_duty(pwm_val, 4);
 	pwm_start();	
 }
-#else
-
-STATIC VOID send_light_data(u8 R_value, u8 G_value, u8 B_value, u8 CW_value, u8 WW_value)
-{
-       if (R_value < 245) {
-		pwm_val = PWM_MAX*R_value/255;
-		pwm_set_duty(pwm_val, 1);
-	}
-        else {
-    		PR_DEBUG("----------stop pwm to level high---------\r\n");	   	
-		pwm_stop(0x0f);
-	}
-		
-	pwm_val = PWM_MAX*R_value/255;
-	pwm_set_duty(pwm_val, 1);
-	pwm_val = PWM_MAX*G_value/255;
-	pwm_set_duty(pwm_val, 3);
-	pwm_val = PWM_MAX*B_value/255;
-	pwm_set_duty(pwm_val, 2);
-	pwm_val = PWM_MAX*CW_value/255;
-	pwm_set_duty(pwm_val, 0);
-	//pwm_val = PWM_MAX*WW_value/255;
-	//pwm_set_duty(pwm_val, 4);
-	pwm_start();	
-}
-
-STATIC VOID send_light_data(u8 CW_value)
-{
-	PR_DEBUG_RAW("--------CW_value:%d--------\r\n",CW_value);
-
-       if (CW_value < 245) {
-    		PR_DEBUG("----------normal pwm---------\r\n");	   	
-		pwm_val = PWM_MAX*CW_value/255;
-		pwm_set_duty(pwm_val, 0);
-		pwm_start();	
-	}
-        else {
-    		PR_DEBUG("----------stop pwm to level high---------\r\n");	   	
-		pwm_stop(0x0f);
-	}
-}
-#endif
 
 /*************************************************************light test********************************/
 
@@ -993,57 +944,6 @@ BOOL gpio_func_test(VOID)
 	return TRUE;
 }
 
-/*********************************************************************************************************/
-#if 0
-VOID prod_test(BOOL flag, CHAR rssi)
-{
-	OPERATE_RET op_ret;
-	flash_scene_flag = FALSE;
-	print_port_init(UART0);
-	PR_DEBUG("rssi:%d", rssi);
-	set_reset_cnt(0);
-	//prod thread create and start
-	if( rssi < -60 || flag == FALSE) {
-		send_light_data(TEST_R_BRGHT, 0, 0, 0, 0);
-		return;
-	}
-
-	if(OPRT_OK != get_light_test_flag()){
-		PR_ERR("get_light_test_flag err.......");
-	}
-	test_handle.test_mode = FUC_TEST2;
-	if(test_handle.test_mode == AGING_TEST){
-		get_aging_tested_time();
-		test_handle.aging_left_time = AGING_TEST_TIME - test_handle.aging_tested_time*TIME_SAVE_INTERVAL;
-		op_ret = sys_add_timer(aging_test_timer_cb,NULL,&test_handle.aging_test_timer);
-	    if(OPRT_OK != op_ret) {
-			send_light_data(0x00, 0x00, 0x00, 0x00, 0x00);
-	        return;
-	    }
-		if(AGING_TEST_RGB_TIME >= test_handle.aging_left_time){
-			send_light_data(0xff, 0xff, 0xff, 0x00, 0x00);
-		}else{
-			send_light_data(0x00, 0x00, 0x00, 0xff, 0xff);
-		}
-    	
-		test_handle.aging_times = 0;
-        sys_start_timer(test_handle.aging_test_timer, 60000, TIMER_CYCLE);
-	}else{
-		op_ret = sys_add_timer(fuc_test_timer_cb,NULL,&test_handle.fuc_test_timer);
-	    if(OPRT_OK != op_ret) {  
-			send_light_data(0x00, 0x00, 0x00, 0x00, 0x00);
-	        return;
-	    }
-		test_handle.pmd_times = 0;
-		if(test_handle.test_mode == FUC_TEST1){
-			sys_start_timer(test_handle.fuc_test_timer, 1000, TIMER_CYCLE);
-		}else{
-			sys_start_timer(test_handle.fuc_test_timer, 500, TIMER_CYCLE);
-		}
-	}
-	return;	
-}
-#endif
 
 
 VOID reset_light_sta(VOID)
@@ -1209,46 +1109,42 @@ VOID app_init(VOID)
 *  Output: 
 *  Return: 
 ***********************************************************/
+#include	"FD650.H"		// 修改该文件以适应硬件环境
+
 OPERATE_RET device_init(VOID)
 {
-    OPERATE_RET op_ret;
 	print_port_full_init(UART0,BIT_RATE_115200,UART_WordLength_8b,USART_Parity_None,USART_StopBits_1);
+	i2c_master_gpio_init();
+	i2c_master_init();	
 
-	PR_ERR("smart_frame_init failed");	 
-
-	 op_ret = CreateAndStart(&com_iic_thread,com_iic_proc,NULL,1024,TRD_PRIO_2,"cuco_task");
-       if(op_ret != OPRT_OK) {
-           return op_ret;
-       }
 	while(1){
 
-		SystemSleep(1000);	
-		PR_ERR("================");	 
 
+ 	
+		if(key_Show_650()==0x47){
+			Led_Show_650( "0000", 1, 1,FD650_SYSON_1);
+			SystemSleep(1000);	
+			Led_Show_650( "0000", 1, 1,FD650_SYSON_2);
+			SystemSleep(1000);	
+			Led_Show_650( "0000", 1, 1,FD650_SYSON_3);
+			SystemSleep(1000);	
+			Led_Show_650( "0000", 1, 1,FD650_SYSON_4);
+			SystemSleep(1000);	
+			Led_Show_650( "0000", 1, 1,FD650_SYSON_5);
+			SystemSleep(1000);	
+			Led_Show_650( "0000", 1, 1,FD650_SYSON_6);
+			SystemSleep(1000);	
+			Led_Show_650( "0000", 1, 1,FD650_SYSON_7);
+			SystemSleep(1000);	
+			Led_Show_650( "0000", 1, 1,FD650_SYSON_8);
+		}else{
+			Led_Show_650( "0000", 1, 1,FD650_SYSOFF);
+		}
+		
+		SystemSleep(200);
 	}
-	// i2c_master_start();
-
 	
-
-
-    // op_ret = smart_frame_init(device_cb,USER_SW_VER);
-    // if(op_ret != OPRT_OK) {
-    //     PR_ERR("smart_frame_init failed");
-    // }
-	
-	// op_ret = device_differ_init();
-    // if(op_ret != OPRT_OK) {
-    //     return op_ret;
-    // }
-	
-    // DEV_DESC_IF_S def_dev_if;
-    // strcpy(def_dev_if.product_key,PRODECT_KEY);
-    // strcpy(def_dev_if.sw_ver,SW_VER);
-    // def_dev_if.ability = DEV_SINGLE;
-    // op_ret = single_wf_device_init_pk(&def_dev_if);
-	// print_port_full_init(UART0,BIT_RATE_115200,UART_WordLength_8b,USART_Parity_None,USART_StopBits_1);
-	
-    return op_ret;
+    return 0;
 }
 
 STATIC OPERATE_RET device_differ_init(VOID)
@@ -2016,63 +1912,6 @@ STATIC VOID work_mode_change(SCENE_MODE_E mode)
 }
 
 
-STATIC VOID light_switch(bool value)
-{
-	if (value) {
-   	     //����
-	     MutexLock(flash_scene_handle.mutex);
-	     dp_data.SWITCH = TRUE;
-	     get_light_data();
-	     switch(dp_data.WORK_MODE) {
-		  case WHITE_MODE:
-		  case COLOUR_MODE:
-		  case SCENE_MODE:
-		  	  MutexUnLock(flash_scene_handle.mutex);
-		 	  start_gra_change(NORMAL_DELAY_TIME);
-		  	   break;
-		  
-		 default:
-			   sta_cha_flag = TRUE;
-			   num_cnt = 0;
-			   flash_dir = 0;
-			   MutexUnLock(flash_scene_handle.mutex);
-			   break;	
-	       }
-	}
-	else {
-  		//�ص�
-		dp_data.SWITCH = FALSE;
-		MutexLock(flash_scene_handle.mutex);
-		light_data.RED_VAL = 0;
-		light_data.GREEN_VAL = 0;
-		light_data.BLUE_VAL = 0;
-		light_data.WHITE_VAL = 0;
-		light_data.WARM_VAL = 0;
-		light_data.FIN_RED_VAL = 0;
-		light_data.FIN_GREEN_VAL = 0;
-		light_data.FIN_BLUE_VAL = 0;
-		light_data.FIN_WHITE_VAL = 0;
-		light_data.FIN_WARM_VAL = 0;
-		switch(dp_data.WORK_MODE) {
-			case WHITE_MODE:
-			case COLOUR_MODE:
-			case SCENE_MODE:
-				MutexUnLock(flash_scene_handle.mutex);
-				start_gra_change(NORMAL_DELAY_TIME);
-				break;
-			case ROUGUANG_SCENE:
-			case BANLAN_SCENE:
-				hw_timer_disable();
-				send_light_data(light_data.RED_VAL, light_data.GREEN_VAL, light_data.BLUE_VAL, light_data.WHITE_VAL, light_data.WARM_VAL);
-				MutexUnLock(flash_scene_handle.mutex);
-				break;
-			default:
-				send_light_data(light_data.RED_VAL, light_data.GREEN_VAL, light_data.BLUE_VAL, light_data.WHITE_VAL, light_data.WARM_VAL);
-				MutexUnLock(flash_scene_handle.mutex);
-				break;	
-		}
-	}
-}
 
 
 STATIC VOID sl_datapoint_proc(cJSON *root)
@@ -2330,145 +2169,6 @@ STATIC UCHAR *ty_get_enum_str(DP_CNTL_S *dp_cntl, UCHAR enum_id)
 	  _xt_isr_unmask(1 << ETS_GPIO_INUM);					  //Enable the GPIO interrupt
   }
   
-  void gsensor_int_gpio_init(void)
-  {   
-	GPIO_ConfigTypeDef gpio_in_cfg; 					  //Define GPIO Init Structure
-	gpio_in_cfg.GPIO_IntrType = GPIO_PIN_INTR_POSEDGE;	  //下降沿触发
-	gpio_in_cfg.GPIO_Mode = GPIO_Mode_Input;			  //Input mode
-	gpio_in_cfg.GPIO_Pullup = GPIO_PullUp_EN;			  //内部上拉使能
-	gpio_in_cfg.GPIO_Pin = GPIO_Pin_4;					  // Enable GPIO
-	gpio_config(&gpio_in_cfg);							  //Initialization function
-  
-	GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, GPIO_Pin_All); 	//clear all interrupt mask
-	gpio_intr_handler_register(gpio_interrupt_cb);				// Register the interrupt function
-	_xt_isr_unmask(1 << ETS_GPIO_INUM); 						//Enable the GPIO interrupt
-  }  
-
-bool com_iic_writeData(UCHAR chip_addr, UCHAR reg_addr, UCHAR* buf, UCHAR len)
-{
-	i2c_master_start();
-	
-	i2c_master_writeByte(chip_addr & 0xFE);
-			
-	if (!i2c_master_checkAck()) {
-		PR_DEBUG("000 icc addr not ack!");		
-		i2c_master_stop();
-		return false;
-	}
-
-	i2c_master_writeByte(reg_addr);
-
-	if (!i2c_master_checkAck()) {
-		PR_DEBUG("111 reg addr not ack!");		
-		i2c_master_stop();
-		return false;
-	}	
-		
-	while(len--) {
-		i2c_master_writeByte(*buf);
-		if (!i2c_master_checkAck()) {
-			PR_DEBUG("222 data not ack!");		
-			i2c_master_stop();
-			return false;
-		}	  
-		buf++;
-	}
-	
-	i2c_master_stop();
-		
-	return TRUE;
-}
-	
-bool com_iic_readData(UCHAR chip_addr, UCHAR reg_addr, UCHAR* buf, UCHAR len)
-{		
-	i2c_master_start();
-
-	i2c_master_writeByte(chip_addr & 0xFE);
-
-	if (!i2c_master_checkAck()) {
-		PR_DEBUG("000 icc addr not ack!");		
-		i2c_master_stop();
-		return false;
-	}	
-	
-	i2c_master_writeByte(reg_addr);
-
-	if (!i2c_master_checkAck()) {
-		PR_DEBUG("111 reg addr not ack!");		
-		i2c_master_stop();
-		return false;
-	}	
-
-	i2c_master_start();	
-		
-	i2c_master_writeByte(chip_addr | 0x01);
-	
-	if (!i2c_master_checkAck()) {
-		PR_DEBUG("222 icc addr not ack!");		
-		i2c_master_stop();
-		return false;
-	}		
-		
-	while(len) {
-	   *buf = i2c_master_readByte();
-		   
-	   if(1 == len)
-		  i2c_master_send_nack();
-	   else 
-		  i2c_master_send_ack();
-	   
-	   buf++;
-	   len--;
-	}
-		
-	i2c_master_stop();
-		
-	return TRUE;
-}
-
-void touch_get_key_rslt(u8 key_value)
-{
-	if (key_value == KEY_SWITCH)
-		key_switch_now = 1;
-	else if (key_value == KEY_LEFT_1)
-		key_left_temp = 1;
-	else if (key_value == KEY_LEFT_2)
-		key_left_temp = 2;
-	else if (key_value == KEY_LEFT_3)
-		key_left_temp = 3;
-	else if (key_value == KEY_LEFT_4)
-		key_left_temp = 4;	
-	else if (key_value == KEY_LEFT_5)
-		key_left_temp = 5;
-	else if (key_value == KEY_LEFT_6)
-		key_left_temp = 6;
-	else if (key_value == KEY_LEFT_7)
-		key_left_temp = 7;	
-	else if (key_value == KEY_RIGHT_1)
-		key_right_temp = 1;	
-	else if (key_value == KEY_RIGHT_2)
-		key_right_temp = 2;
-	else if (key_value == KEY_RIGHT_3)
-		key_right_temp = 3;	
-	else if (key_value == KEY_RIGHT_4)
-		key_right_temp = 4;
-	else if (key_value == KEY_RIGHT_5)
-		key_right_temp = 5;
-	else if (key_value == KEY_RIGHT_6)
-		key_right_temp = 6;	
-	else if (key_value == KEY_RIGHT_7)
-		key_right_temp = 7;
-	else {
-		key_switch_now = 0;
-		key_left_temp = 0;
-		key_right_temp = 0;
-	}
-
-	//PR_DEBUG("----------- key_switch_now: %d-------------", key_switch_now);	
-	//PR_DEBUG("----------- key_left_temp: %d-------------", key_left_temp);	
-	//PR_DEBUG("----------- key_right_temp: %d-------------", key_right_temp);	
-	
-}
 
 static u8 com_iic_touch_readData(void)
 {	
@@ -2492,413 +2192,18 @@ static u8 com_iic_touch_readData(void)
 	return key_value;
 }
 
-#if 1
-static void key_get(void)
-{
-	static u8 key_value_last = 0;
-	u8 key_value_now = 0;	
-	
-	key_value_now = com_iic_touch_readData();
-
-	if (key_value_now == key_value_last) 
-		touch_get_key_rslt(key_value_now);	
-
-	key_value_last = key_value_now;
-}
-#else
-static void key_get(void)
-{
-	u8 key_value_now = 0;	
-	
-	key_value_now = com_iic_touch_readData();
-
-	touch_get_key_rslt(key_value_now);	
-}
-#endif
-
-static u8 bright_change(u8 key_level)
-{
-	u8 bright = 25;
-	
-	if (key_level == 1 || key_level == 0)
-		bright = 25;
-	else if (key_level == 7)
-		bright = 255;
-	else
-		bright = (key_level - 1) * 38 + 25;
-
-	return bright;
-}
-
-
-#if 0
-static void key_proc(void)
-{
-	static u8 key_switch_last = 0, key_fix_cnt = 0, key_single_cnt = 0;
-	static u8 key_left_last = 0, key_right_last = 0;
-       const char * colour_str;
-
-	if (key_switch_last == key_switch_now) {
-		key_fix_cnt++;
-	}
-	else if (key_switch_now == 0){
-		key_fix_cnt = 0;		
-	}
-	else if (key_switch_now == 1){
-		key_fix_cnt = 0;
-		if (key_switch_single) 
-			key_switch_double = 1;
-		else {
-			key_switch_single = 1;
-			key_single_cnt = 0;
-		}
-	}		
-
-	if (key_switch_single) {
-		if (key_single_cnt++ > 40) {
-			key_single_cnt = 0;						
-			if (key_switch_double) {
- 				PR_DEBUG("------------get a double key---------");	
-				if(dp_data.WORK_MODE == WHITE_MODE) 
-					work_mode_change(COLOUR_MODE);
-				else
-					work_mode_change(WHITE_MODE);	
-				//light_switch(TRUE);	
-			}
-			else {
- 				PR_DEBUG("------------get a short key---------");	
-				if (dp_data.SWITCH) {
-			              PR_DEBUG("------------touch single turn off---------");				
-					light_switch(FALSE);				
-				}
-				else {
-			              PR_DEBUG("------------touch single turn on---------");								
-					light_switch(TRUE);	
-				}			
-			}
-			//dev_inf_set();		
-			sys_start_timer(data_save_timer,3000,TIMER_CYCLE);			
-	        	init_upload_proc();				
-			key_switch_single = 0;
-			key_switch_double = 0;			
-		}
-	}
-	else
-		key_single_cnt = 0;
-	
-	if (key_fix_cnt > 60 && key_switch_now) {
-		key_fix_cnt = 0;
- 		PR_DEBUG("------------get a long key, come to reset factory---------");		
-		single_dev_reset_factory();
-	}
-
-	if (key_left_temp != key_left_last && key_left_temp != 0) {
-		 PR_DEBUG("------------000 come key_left ---------");	
-		key_left = key_left_temp;
-		 PR_DEBUG("------------key_left: %d ---------", key_left);			
-		if(dp_data.WORK_MODE == WHITE_MODE) {			
-		     dp_data.BRIGHT = bright_change(key_left);
-		     get_light_data();
-		     //PR_DEBUG("R:%d G:%d B:%d W:%d WW:%d",light_data.FIN_RED_VAL, light_data.FIN_GREEN_VAL, light_data.FIN_BLUE_VAL, light_data.FIN_WHITE_VAL, light_data.FIN_WARM_VAL);
-		     start_gra_change(NORMAL_DELAY_TIME);
-		}
-		else {
-			colour_str = colour_table[key_right - 1][7 - key_left];
-		    	memcpy(dp_data.COLOUR_DATA, colour_str, 14);
-			PR_ERR("dp_data.COLOUR_DATA: %s", dp_data.COLOUR_DATA);
-			get_light_data();
-			start_gra_change(NORMAL_DELAY_TIME);
-		}
-		//dev_inf_set();	
-		sys_start_timer(data_save_timer,3000,TIMER_CYCLE);		
-	       	init_upload_proc();	
-	}
-
-	if (key_right_temp != key_right_last && key_right_temp != 0) {
-		PR_DEBUG("------------111 come key_right ---------");	
-		key_right = key_right_temp;
-		 PR_DEBUG("------------key_right: %d ---------", key_right);					
-		if(dp_data.WORK_MODE == WHITE_MODE) {
-		     dp_data.BRIGHT = bright_change(key_right);
-		     get_light_data();
-		     //PR_DEBUG("R:%d G:%d B:%d W:%d WW:%d",light_data.FIN_RED_VAL, light_data.FIN_GREEN_VAL, light_data.FIN_BLUE_VAL, light_data.FIN_WHITE_VAL, light_data.FIN_WARM_VAL);
-		     start_gra_change(NORMAL_DELAY_TIME);
-		}
-		else {
-			colour_str = colour_table[key_right - 1][0];
-	    		memcpy(dp_data.COLOUR_DATA, colour_str, 14);
-			PR_ERR("dp_data.COLOUR_DATA: %s", dp_data.COLOUR_DATA);
-			get_light_data();
-			start_gra_change(NORMAL_DELAY_TIME);
-		}
-		//dev_inf_set();	
-		sys_start_timer(data_save_timer,3000,TIMER_CYCLE);		
-	       	init_upload_proc();			
-	}	
-
-	key_switch_last = key_switch_now;
-	key_left_last = key_left_temp;
-	key_right_last = key_right_temp;
-}
-#else
-static void key_proc(void)
-{
-	static u8 key_switch_cnt = 0, key_left_last = 0, key_right_last = 0;
-       const char * colour_str;
-
-	if (key_switch_now ==1) {
-		if (key_switch_cnt > 150) {
-			key_switch_cnt = 0;
-	 		PR_DEBUG("------------get a long key, come to reset factory---------");		
-			single_dev_reset_factory();			
-		}		
-	}
-	else if (key_switch_now == 0){
-#if 	0	
-		if (key_switch_cnt > 10) {
-			key_switch_cnt = 0;
-	 		PR_DEBUG("------------get a middle key---------");	
-			if(dp_data.WORK_MODE == WHITE_MODE) 
-				work_mode_change(COLOUR_MODE);
-			else
-				work_mode_change(WHITE_MODE);	
-			//dev_inf_set();	
-			sys_start_timer(data_save_timer,3000,TIMER_CYCLE);
-	        	init_upload_proc();
-		}
-#endif		
-		 if (key_switch_cnt > 0){
-			key_switch_cnt = 0;
-			PR_DEBUG("------------get a short key---------");	
-#if 	0		
-			if (dp_data.SWITCH) {
-		              PR_DEBUG("------------touch single turn off---------");				
-				light_switch(FALSE);				
-			}
-			else {
-		              PR_DEBUG("------------touch single turn on---------");								
-				light_switch(TRUE);	
-			}
-#else
-			if (dp_data.SWITCH) {
-				if(dp_data.WORK_MODE == WHITE_MODE) 
-					work_mode_change(COLOUR_MODE);
-				else
-					work_mode_change(WHITE_MODE);
-				//dev_inf_set();				
-				sys_start_timer(data_save_timer,3000,TIMER_CYCLE);			
-		        	init_upload_proc();				
-			}
-#endif				
-		}	
-	}
-
-	if (key_switch_now == 1) 
-		key_switch_cnt++;
-	else
-		key_switch_cnt = 0;
-
-	if (key_left_temp != key_left_last && key_left_temp != 0) {
-		PR_DEBUG("------------000 come key_left ---------");	
-		key_left = key_left_temp;
-		PR_DEBUG("------------key_left: %d ---------", key_left);	
-		if (dp_data.SWITCH) {
-			if(dp_data.WORK_MODE == WHITE_MODE) {			
-			     dp_data.BRIGHT = bright_change(7 - key_left);
-			     get_light_data();
-			     //PR_DEBUG("R:%d G:%d B:%d W:%d WW:%d",light_data.FIN_RED_VAL, light_data.FIN_GREEN_VAL, light_data.FIN_BLUE_VAL, light_data.FIN_WHITE_VAL, light_data.FIN_WARM_VAL);
-			     start_gra_change(NORMAL_DELAY_TIME);
-			}
-			else {
-				colour_str = colour_table[key_right - 1][key_left - 1];
-			    	memcpy(dp_data.COLOUR_DATA, colour_str, 14);
-				PR_ERR("dp_data.COLOUR_DATA: %s", dp_data.COLOUR_DATA);
-				get_light_data();
-				start_gra_change(NORMAL_DELAY_TIME);	
-			}
-			//dev_inf_set();	
-			sys_start_timer(data_save_timer,3000,TIMER_CYCLE);		
-		       	init_upload_proc();
-		}	
-	}
-
-	if (key_right_temp != key_right_last && key_right_temp != 0) {
-		PR_DEBUG("------------111 come key_right ---------");	
-		key_right = key_right_temp;
-		 PR_DEBUG("------------key_right: %d ---------", key_right);		
-		if (dp_data.SWITCH) {
-			if(dp_data.WORK_MODE == WHITE_MODE) {
-			     dp_data.BRIGHT = bright_change(7 - key_right);
-			     get_light_data();
-			     //PR_DEBUG("R:%d G:%d B:%d W:%d WW:%d",light_data.FIN_RED_VAL, light_data.FIN_GREEN_VAL, light_data.FIN_BLUE_VAL, light_data.FIN_WHITE_VAL, light_data.FIN_WARM_VAL);
-			     start_gra_change(NORMAL_DELAY_TIME);
-			}
-			else {
-				colour_str = colour_table[key_right - 1][0];
-		    		memcpy(dp_data.COLOUR_DATA, colour_str, 14);
-				PR_ERR("dp_data.COLOUR_DATA: %s", dp_data.COLOUR_DATA);
-				get_light_data();
-				start_gra_change(NORMAL_DELAY_TIME);	
-			}
-			//dev_inf_set();	
-			sys_start_timer(data_save_timer,3000,TIMER_CYCLE);		
-		       	init_upload_proc();	
-		}		
-	}	
-
-	key_left_last = key_left_temp;
-	key_right_last = key_right_temp;
-}
-#endif
-
-static void gsensor_proc(void)
-{
-	static short  g_x_last = 0, g_y_last = 0, g_z_last = 0;
-	static u16 inc_sum_last = 0;
-	u16 g_x_inc = 0, g_y_inc = 0, g_z_inc = 0, valid_cnt = 0, inc_sum = 0;
-	
-	g_x_inc = (g_x > g_x_last) ?  g_x - g_x_last:  g_x_last - g_x; 
-	g_y_inc = (g_y > g_y_last) ?  g_y - g_y_last:  g_y_last - g_y; 
-	g_z_inc = (g_z > g_z_last) ?  g_z - g_z_last:  g_z_last - g_z; 
-	valid_cnt = 0;
-
-       //PR_DEBUG("------------000 inc:  %d  %d  %d  ---------", g_x_inc, g_y_inc, g_z_inc);	
-
-	if (g_x_inc > 400 || g_y_inc > 400 || g_z_inc > 400) {
-		g_x_last = g_x;
-		g_y_last = g_y;
-		g_z_last = g_z;	
-		return;
-	}
-
-       //PR_DEBUG("------------111 inc:  %d  %d  %d  ---------", g_x_inc, g_y_inc, g_z_inc);		
-
-	if (g_x_inc > 20 && g_x_inc < 400)
-		valid_cnt++;
-	if (g_y_inc > 20 && g_y_inc < 400)
-		valid_cnt++;	
-	if (g_z_inc > 20 && g_z_inc < 400)
-		valid_cnt++;
-
-	inc_sum = g_x_inc + g_y_inc + g_z_inc;
-	
-	if (valid_cnt >= 2 && inc_sum > 50) {
-		if (click_now && inc_sum < (inc_sum_last / 2)) {
-			click_now = 0;
-		}
-		else {
-			click_now = 1;
-		}
-	}
-	else 
-		click_now = 0;		
-
-       //PR_DEBUG("------------valid_cnt:  %d ---------", valid_cnt);	
-       //PR_DEBUG("------------click_now:  %d ---------", click_now);	
-	
-	g_x_last = g_x;
-	g_y_last = g_y;
-	g_z_last = g_z;
-	inc_sum_last = inc_sum;	
-}
-
-#if 1
-static void click_handle(void)
-{
-	static u8 click_last = 0, cnt = 0;
-
-	if (click_now != click_last && click_now == 1){
-		if (click_single) {
-			click_double = 1;
-		       PR_DEBUG("------------get click_double ---------");				
-		}
-		else {
-			click_single = 1;
-			cnt = 0;
-		       PR_DEBUG("------------get click_single ---------");							
-		}
-	}		
-
-	if (click_single) {
-		//PR_DEBUG("------------come click_single,  cnt:  %d  ---------",  cnt);									
-		if (cnt++ > 20) {
-			if (click_double) {
-				if (dp_data.SWITCH) {
-			              PR_DEBUG("------------double click turn off---------");				
-					light_switch(FALSE);				
-				}
-				else {
-			              PR_DEBUG("------------double click turn on---------");								
-					light_switch(TRUE);	
-				}
-				//dev_inf_set();	
-				sys_start_timer(data_save_timer,3000,TIMER_CYCLE);				
-		        	init_upload_proc();					
-			}
-			cnt = 0;									
-			click_single = 0;
-			click_double = 0;			
-		}
-	}
-	else {
-		cnt = 0;
-	}
-
-	click_last = click_now;
-
-}
-#else
-static void click_handle(void)
-{
-	static u8 click_last = 0, cnt = 0, shield = 0;
-
-	if (shield) {
-		if (cnt++ > 20) {
-			shield = 0;
-			cnt = 0;
-		}
-	}
-
-	if (click_now != click_last && click_now == 1){
-		PR_DEBUG("------------get click_single ---------");	
-		if (shield == 0) {
-			cnt = 0;	
-			shield = 1;
-			if (dp_data.SWITCH) {
-			       PR_DEBUG("------------single click turn off---------");				
-				light_switch(FALSE);				
-			}
-			else {
-			        PR_DEBUG("------------single click turn on---------");								
-				light_switch(TRUE);	
-			}
-			//dev_inf_set();	
-			sys_start_timer(data_save_timer,3000,TIMER_CYCLE);				
-			init_upload_proc();	
-		}		   
-	}		
-
-	click_last = click_now;
-
-}
-#endif
 
 
 STATIC VOID com_iic_proc(PVOID pArg)
 {
 	static u8 g_last_key_read = 0;
 	UCHAR chip_id = 0;
-	//UCHAR buf[50];
-      GW_WIFI_STAT_E wf_stat; 
-
-	PR_DEBUG("first up power!");	
+    GW_WIFI_STAT_E wf_stat; 
 	SystemSleep(100);	
 	
-	i2c_master_gpio_init();
-	i2c_master_init();	
+	
 	while( 1 ) {  
-		  SystemSleep(2000);	
-		  PR_DEBUG("-------------------");
+		  SystemSleep(20);	 
 	}	
 }
 

@@ -11,31 +11,22 @@
 */            
 
 // 硬件相关定义, 请根据实际硬件修改本文件
-#ifndef __FD650H__
-#define __FD650H__
+#ifndef _FD650_H
+#define _FD650_H
+
 
 
 typedef unsigned char   u_int8;
 typedef unsigned short  u_int16;	
 typedef unsigned long 	u_int32;
 
-#define		DELAY					///<延时时序宏，控制SCL以及SDA的速率，建议在5uS以上
+#define	DELAY		os_delay_us(5)		///<延时时序宏，控制SCL以及SDA的速率，建议在5uS以上
 
 #define	FD650_SCL        ()       ///<定义IO端口
 #define	FD650_SDA       ()        ///<定义IO端口
 
-#define HIGH 1
-#define LOW  0
 
 
-#define		FD650_SCL_SET		{}   ///<将SCL设置为高电平
-#define		FD650_SCL_CLR		{}   ///<将SCL设置为低电平
-#define		FD650_SCL_D_OUT	    {}	 ///<设置SCL为输出方向,对于双向I/O需切换为输出
-#define		FD650_SDA_SET		{}   ///<将SDA设置为高电平
-#define		FD650_SDA_CLR		{}   ///<将SDA设置为低电平
-#define		FD650_SDA_IN		{}	 ///<当SDA设为输入方向时，读取的电平值
-#define		FD650_SDA_D_OUT		{}	 ///<设置SDA为输出方向,对于双向I/O需切换为输出,建议不要设置成推挽，避免ACK处的阶梯状波形出现。
-#define		FD650_SDA_D_IN		{}	 ///<设置SDA为输入方向,对于双向I/O需切换为输入
 
 
 
@@ -60,9 +51,12 @@ typedef unsigned long 	u_int32;
 //#define FD650_7SEG_ON	( FD650_SYSON | FD650_BIT_7SEG )	///< 开启七段模式
 #define FD650_8SEG_ON	( FD650_SYSON | 0x00 )	///< 开启八段模式
 #define FD650_SYSON_1	( FD650_SYSON | FD650_BIT_INTENS1 )	///< 开启显示、键盘、1级亮度
-//以此类推
+#define FD650_SYSON_2	( FD650_SYSON | FD650_BIT_INTENS2 )	///< 开启显示、键盘、4级亮度
+#define FD650_SYSON_3	( FD650_SYSON | FD650_BIT_INTENS3 )	///< 开启显示、键盘、8级亮度
 #define FD650_SYSON_4	( FD650_SYSON | FD650_BIT_INTENS4 )	///< 开启显示、键盘、4级亮度
-//以此类推
+#define FD650_SYSON_5	( FD650_SYSON | FD650_BIT_INTENS5 )	///< 开启显示、键盘、8级亮度
+#define FD650_SYSON_6	( FD650_SYSON | FD650_BIT_INTENS6 )	///< 开启显示、键盘、4级亮度
+#define FD650_SYSON_7	( FD650_SYSON | FD650_BIT_INTENS7 )	///< 开启显示、键盘、8级亮度
 #define FD650_SYSON_8	( FD650_SYSON | FD650_BIT_INTENS8 )	///< 开启显示、键盘、8级亮度
 
 

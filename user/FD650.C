@@ -10,6 +10,27 @@
 */
 #include	"FD650.H"	
 
+extern unsigned char  m_nLastSDA;
+extern unsigned char  m_nLastSCL;
+
+#define SDA_HIGH 1
+#define SDA_LOW  0
+
+#define SCL_HIGH 1
+#define SCL_LOW  0
+
+#define		FD650_SCL_SET	 	i2c_master_setDC(m_nLastSDA, SCL_HIGH)  ///<将SCL设置为高电平
+#define		FD650_SCL_CLR	 	i2c_master_setDC(m_nLastSDA, SCL_LOW)  ///<将SCL设置为低电平
+#define		FD650_SCL_D_OUT	   {}	 ///<设置SCL为输出方向,对于双向I/O需切换为输出
+#define		FD650_SDA_SET		i2c_master_setDC(SDA_HIGH, m_nLastSCL)   ///<将SDA设置为高电平
+#define		FD650_SDA_CLR		i2c_master_setDC(SDA_LOW, m_nLastSCL)   ///<将SDA设置为低电平
+#define		FD650_SDA_IN		i2c_master_getDC() ///<当SDA设为输入方向时，读取的电平值
+#define		FD650_SDA_D_OUT		{}	 ///<设置SDA为输出方向,对于双向I/O需切换为输出,建议不要设置成推挽，避免ACK处的阶梯状波形出现。
+#define		FD650_SDA_D_IN		{}	 ///<设置SDA为输入方向,对于双向I/O需切换为输入
+
+
+
+
 /** 
  * @brief   启动FD650
  * @param   无
@@ -156,7 +177,7 @@ void FD650_Write( u_int16 cmd )
  * @note 	读取FD650的按键码字 ，有键按下返回键值，无键按下返回0。按键码值表见下表
  * @code 
  *	按键码值表				 
- *	编址   DIG3 DIG2 DIG1 DIG0 
+ *	编址   DIG1 DIG2 DIG3 DIG4 
  *	KI1  	47H 46H 45H 44H 
  *	KI2 	4FH 4EH 4DH 4CH 
  *	KI3  	57H 56H 55H 54H 
